@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
 				// Получаем результат от child2 через pipe2
 				bytes = read(child2_to_parent[0], buf, sizeof(buf));
 				if (bytes > 0) {
-					write(STDOUT_FILENO, "Result: ", 9);
+					// write(STDOUT_FILENO, "Result: ", 9);
 					write(STDOUT_FILENO, buf, bytes);
 					write(STDOUT_FILENO, "\n", 1);
 				}

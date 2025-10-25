@@ -1,0 +1,3 @@
+Enter strings (empty line to exit):
+HELLO_HI_
+HIII_HELLO_WORLD_
