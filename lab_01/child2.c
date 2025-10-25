@@ -38,17 +38,8 @@ int main(int argc, char **argv) {
         }
 
         {
-            // NOTE: Log to file
-            int32_t written = write(file, buf, bytes);
-            write(file, "\n", 1);
-            if (written != bytes) {
-                const char msg[] = "error: failed to write to file\n";
-                write(STDERR_FILENO, msg, sizeof(msg));
-                exit(EXIT_FAILURE);
-            }
-
             // NOTE: Send back to parent process
-            written = write(STDOUT_FILENO, buf, bytes);
+            int32_t written = write(STDOUT_FILENO, buf, bytes);
             if (written != bytes) {
                 const char msg[] = "error: failed to send to parent\n";
                 write(STDERR_FILENO, msg, sizeof(msg));
@@ -57,12 +48,5 @@ int main(int argc, char **argv) {
         }
     }
 
-    // NOTE: Write terminator to the end file
-    if (bytes == 0) {
-        const char term = '\0';
-        write(file, &term, sizeof(term));
-    }
-
-    close(file);
     return 0;
 }
