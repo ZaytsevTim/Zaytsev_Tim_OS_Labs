@@ -70,9 +70,11 @@ int main(int argc, char **argv) {
 			close(child1_to_child2[1]);
 			
 
-			char path[2048];
-			snprintf(path, sizeof(path), "%s/%s", progpath, CHILD1_PROGRAM_NAME);
-			char *const args[] = {CHILD1_PROGRAM_NAME, argv[1], NULL};
+            char path[2048];
+            strcpy(path, progpath);
+            strcat(path, "/");
+            strcat(path, CHILD1_PROGRAM_NAME);
+			char *const args[] = {CHILD1_PROGRAM_NAME, NULL};
 			
 			int32_t status = execv(path, args);
 			
@@ -113,8 +115,10 @@ int main(int argc, char **argv) {
 			close(child2_to_parent[1]);
 
 			char path[2048];
-			snprintf(path, sizeof(path), "%s/%s", progpath, CHILD2_PROGRAM_NAME);
-			char *const args[] = {CHILD2_PROGRAM_NAME, argv[1], NULL};
+            strcpy(path, progpath);
+            strcat(path, "/");
+            strcat(path, CHILD2_PROGRAM_NAME);
+			char *const args[] = {CHILD2_PROGRAM_NAME, NULL};
 			
 			int32_t status = execv(path, args);
 			
@@ -147,17 +151,18 @@ int main(int argc, char **argv) {
 			const char msg[] = "Enter strings (empty line to exit):\n";
 			write(STDOUT_FILENO, msg, sizeof(msg) - 1);
 			
-			while (bytes = read(STDIN_FILENO, buf, sizeof(buf))) {
-				if (bytes < 0) {
-					const char msg[] = "error: failed to read from stdin\n";
-					write(STDERR_FILENO, msg, sizeof(msg));
-					exit(EXIT_FAILURE);
-				} else if (buf[0] == '\n') {
-					break;
-				}
+            while ((bytes = read(STDIN_FILENO, buf, sizeof(buf))) > 0) {
+                if (buf[0] == '\n') {
+                    break;
+                }
 
 				// Отправляем в child1 через pipe1
-				write(parent_to_child1[1], buf, bytes);
+                ssize_t written = write(parent_to_child1[1], buf, bytes);
+                if (written != bytes) {
+                    const char msg[] = "error: failed to write to child1\n";
+                    write(STDERR_FILENO, msg, sizeof(msg) - 1);
+                    exit(EXIT_FAILURE);
+                }
 
 				// Получаем результат от child2 через pipe2
 				bytes = read(child2_to_parent[0], buf, sizeof(buf));
