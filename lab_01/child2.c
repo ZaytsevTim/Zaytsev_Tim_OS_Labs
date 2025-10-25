@@ -1,27 +1,19 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+
+int is_space(char c) {
+    return (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f');
+}
 
 int main(int argc, char **argv) {
     char buf[4096];
     ssize_t bytes;
 
     pid_t pid = getpid();
-
-    // NOTE: `O_WRONLY` only enables file for writing
-    // NOTE: `O_CREAT` creates the requested file if absent
-    // NOTE: `O_TRUNC` empties the file prior to opening  
-    // NOTE: `O_APPEND` subsequent writes are being appended instead of overwritten
-    int32_t file = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0600);
-    if (file == -1) {
-        const char msg[] = "error: failed to open requested file\n";
-        write(STDERR_FILENO, msg, sizeof(msg));
-        exit(EXIT_FAILURE);
-    }
 
     while (bytes = read(STDIN_FILENO, buf, sizeof(buf))) {
         if (bytes < 0) {
@@ -32,7 +24,7 @@ int main(int argc, char **argv) {
 
         // NOTE: Transform data - replace whitespace with '_'
         for (uint32_t i = 0; i < bytes; ++i) {
-            if (isspace(buf[i])) {
+            if (is_space(buf[i])) {
                 buf[i] = '_';
             }
         }
