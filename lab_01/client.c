@@ -11,12 +11,6 @@ static char CHILD2_PROGRAM_NAME[] = "child2";
 
 
 int main(int argc, char **argv) {
-	if (argc == 1) {
-		char msg[1024];
-		uint32_t len = snprintf(msg, sizeof(msg) - 1, "usage: %s filename\n", argv[0]);
-		write(STDERR_FILENO, msg, len);
-		exit(EXIT_SUCCESS);
-	}
 	char progpath[1024];
 	{
 
