@@ -144,7 +144,8 @@ int main(int argc, char **argv) {
 			char buf[4096];
 			ssize_t bytes;
 
-			printf("Введите строки (пустая строка для выхода):\n");
+			const char msg[] = "Enter strings (empty line to exit):\n";
+			write(STDOUT_FILENO, msg, sizeof(msg) - 1);
 			
 			while (bytes = read(STDIN_FILENO, buf, sizeof(buf))) {
 				if (bytes < 0) {
