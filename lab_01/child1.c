@@ -36,16 +36,8 @@ int main(int argc, char **argv) {
         }
 
         {
-            // NOTE: Log to file
-            int32_t written = write(file, buf, bytes);
-            if (written != bytes) {
-                const char msg[] = "error: failed to write to file\n";
-                write(STDERR_FILENO, msg, sizeof(msg));
-                exit(EXIT_FAILURE);
-            }
-
             // NOTE: Send to next process (Child2)
-            written = write(STDOUT_FILENO, buf, bytes);
+            int32_t written = write(STDOUT_FILENO, buf, bytes);
             if (written != bytes) {
                 const char msg[] = "error: failed to send to next process\n";
                 write(STDERR_FILENO, msg, sizeof(msg));
