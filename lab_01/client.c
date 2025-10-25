@@ -45,12 +45,12 @@ int main(int argc, char **argv) {
 		} break;
 
 		case 0: { // Процесс child1
-			{
-				pid_t pid = getpid(); // Получаем PID child1
-				char msg[64];
-				uint32_t length = snprintf(msg, sizeof(msg), "%d: I'm child1\n", pid);
-				write(STDOUT_FILENO, msg, length);
-			}
+			// {
+			// 	pid_t pid = getpid(); // Получаем PID child1
+			// 	char msg[64];
+			// 	uint32_t length = snprintf(msg, sizeof(msg), "%d: I'm child1\n", pid);
+			// 	write(STDOUT_FILENO, msg, length);
+			// }
 
 			close(parent_to_child1[1]); 
 			close(child1_to_child2[0]);  
@@ -90,12 +90,12 @@ int main(int argc, char **argv) {
 		} break;
 
 		case 0: { // Процесс child2
-			{
-				pid_t pid = getpid();
-				char msg[64];
-				uint32_t length = snprintf(msg, sizeof(msg), "%d: I'm child2\n", pid);
-				write(STDOUT_FILENO, msg, length);
-			}
+			// {
+			// 	pid_t pid = getpid();
+			// 	char msg[64];
+			// 	uint32_t length = snprintf(msg, sizeof(msg), "%d: I'm child2\n", pid);
+			// 	write(STDOUT_FILENO, msg, length);
+			// }
 
 			close(parent_to_child1[0]);
 			close(parent_to_child1[1]);
@@ -124,14 +124,14 @@ int main(int argc, char **argv) {
 		} break;
 
 		default: { // Родительский процесс - ОБА ребенка созданы!
-			{
-				pid_t pid = getpid();
-				char msg[128];
-				uint32_t length = snprintf(msg, sizeof(msg), 
-					"%d: I'm parent, my children have PIDs %d and %d\n", 
-					pid, child1, child2);
-				write(STDOUT_FILENO, msg, length);
-			}
+			// {
+			// 	pid_t pid = getpid();
+			// 	char msg[128];
+			// 	uint32_t length = snprintf(msg, sizeof(msg), 
+			// 		"%d: I'm parent, my children have PIDs %d and %d\n", 
+			// 		pid, child1, child2);
+			// 	write(STDOUT_FILENO, msg, length);
+			// }
 
 			// Закрываем ненужные концы pipe'ов в родителе
 			close(parent_to_child1[0]);

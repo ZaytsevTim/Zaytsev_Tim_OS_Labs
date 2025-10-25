@@ -1,0 +1,3 @@
+Hello, World!
+Test String    <- four spaces
+    Tabulations!    &%^$ symbols
