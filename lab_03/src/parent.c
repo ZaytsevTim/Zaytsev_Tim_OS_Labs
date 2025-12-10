@@ -18,13 +18,16 @@ typedef struct {
 } shm_data;
 
 void generate_names(pid_t pid, char* shm1, char* shm2, char* shm3, 
-                   char* sem1, char* sem2, char* sem3) {
+                   char* sem1, char* sem2, char* sem3,
+                   char* ready1, char* ready2) {
     snprintf(shm1, 64, "/shm1-%d", pid);
     snprintf(shm2, 64, "/shm2-%d", pid);
     snprintf(shm3, 64, "/shm3-%d", pid);
     snprintf(sem1, 64, "/sem1-%d", pid);
     snprintf(sem2, 64, "/sem2-%d", pid);
     snprintf(sem3, 64, "/sem3-%d", pid);
+    snprintf(ready1, 64, "/ready1-%d", pid);
+    snprintf(ready2, 64, "/ready2-%d", pid);
 }
 
 int main() {
@@ -32,9 +35,10 @@ int main() {
     
     char shm1_name[64], shm2_name[64], shm3_name[64];
     char sem1_name[64], sem2_name[64], sem3_name[64];
+    char ready1_name[64], ready2_name[64];
     
     generate_names(parent_pid, shm1_name, shm2_name, shm3_name, 
-                  sem1_name, sem2_name, sem3_name);
+                  sem1_name, sem2_name, sem3_name, ready1_name, ready2_name);
     
     int shm1_fd = shm_open(shm1_name, O_RDWR | O_CREAT | O_EXCL, 0600);
     if (shm1_fd == -1) {
@@ -117,6 +121,20 @@ int main() {
         exit(EXIT_FAILURE);
     }
     
+    sem_t *ready_sem1 = sem_open(ready1_name, O_CREAT | O_EXCL, 0600, 0);
+    if (ready_sem1 == SEM_FAILED) {
+        const char msg[] = "error: failed to create ready semaphore1\n";
+        write(STDERR_FILENO, msg, sizeof(msg) - 1);
+        exit(EXIT_FAILURE);
+    }
+    
+    sem_t *ready_sem2 = sem_open(ready2_name, O_CREAT | O_EXCL, 0600, 0);
+    if (ready_sem2 == SEM_FAILED) {
+        const char msg[] = "error: failed to create ready semaphore2\n";
+        write(STDERR_FILENO, msg, sizeof(msg) - 1);
+        exit(EXIT_FAILURE);
+    }
+    
     shm1->length = 0;
     shm2->length = 0;
     shm3->length = 0;
@@ -160,12 +178,24 @@ int main() {
         exit(EXIT_FAILURE);
     }
     
-    sleep(1);
+    const char waiting_msg[] = "Waiting for children.\n";
+    write(STDOUT_FILENO, waiting_msg, sizeof(waiting_msg) - 1);
+    
+    sem_wait(ready_sem1);
+    sem_wait(ready_sem2);
+    
+    const char ready_msg[] = "Children ready!\n";
+    write(STDOUT_FILENO, ready_msg, sizeof(ready_msg) - 1);
+    
+    sem_close(ready_sem1);
+    sem_close(ready_sem2);
+    sem_unlink(ready1_name);
+    sem_unlink(ready2_name);
     
     char buffer[BUFFER_SIZE];
     
     while (1) {
-        const char prompt[] = "> ";
+        const char prompt[] = "Ввод: ";
         if (write(STDOUT_FILENO, prompt, sizeof(prompt) - 1) == -1) {
             const char msg[] = "error: failed to write prompt\n";
             write(STDERR_FILENO, msg, sizeof(msg) - 1);
@@ -302,6 +332,9 @@ int main() {
         write(STDERR_FILENO, msg, sizeof(msg) - 1);
     }
     
+    sem_unlink(ready1_name);
+    sem_unlink(ready2_name);
+    
     if (munmap(shm1, SHM_SIZE) == -1) {
         const char msg[] = "error: munmap failed\n";
         write(STDERR_FILENO, msg, sizeof(msg) - 1);
@@ -348,7 +381,7 @@ int main() {
     }
     
     const char end_msg[] = "Parent finished.\n";
-    write(STDOUT_FILENO, end_msg, sizeof(end_msg));
+    write(STDOUT_FILENO, end_msg, sizeof(end_msg) - 1);
     
     return 0;
 }

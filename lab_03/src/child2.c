@@ -27,11 +27,13 @@ int main(int argc, char* argv[]) {
     pid_t parent_pid = atoi(argv[1]);
     
     char shm2_name[64], shm3_name[64], sem2_name[64], sem3_name[64];
+    char ready2_name[64];
     
     snprintf(shm2_name, sizeof(shm2_name), "/shm2-%d", parent_pid);
     snprintf(shm3_name, sizeof(shm3_name), "/shm3-%d", parent_pid);
     snprintf(sem2_name, sizeof(sem2_name), "/sem2-%d", parent_pid);
     snprintf(sem3_name, sizeof(sem3_name), "/sem3-%d", parent_pid);
+    snprintf(ready2_name, sizeof(ready2_name), "/ready2-%d", parent_pid);
     
     int shm2_fd = shm_open(shm2_name, O_RDWR, 0);
     if (shm2_fd == -1) {
@@ -75,11 +77,21 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
     
-    const char start_msg[] = "Child2 started (spaces -> '_')\n";
+    sem_t *ready_sem2 = sem_open(ready2_name, 0);
+    if (ready_sem2 == SEM_FAILED) {
+        const char msg[] = "error: failed to open ready semaphore2 in child2\n";
+        write(STDERR_FILENO, msg, sizeof(msg) - 1);
+        exit(EXIT_FAILURE);
+    }
+    
+    const char start_msg[] = "Child2 gotov!\n";
     if (write(STDOUT_FILENO, start_msg, sizeof(start_msg) - 1) == -1) {
         const char msg[] = "error: failed to write start message\n";
         write(STDERR_FILENO, msg, sizeof(msg) - 1);
     }
+    
+    sem_post(ready_sem2);
+    sem_close(ready_sem2);
     
     int running = 1;
     
@@ -126,8 +138,6 @@ int main(int argc, char* argv[]) {
             write(STDERR_FILENO, msg, sizeof(msg) - 1);
             break;
         }
-        
-        usleep(10000);
     }
     
     if (sem_close(sem2) == -1) {
